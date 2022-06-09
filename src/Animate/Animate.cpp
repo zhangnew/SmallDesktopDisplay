@@ -20,7 +20,7 @@ void imgAnim(const uint8_t **Animate_value, uint32_t *Animate_size)
 //太空人起飞
 #if Animate_Choice == 1
     *Animate_value = astronaut[Animate_key];
-    *Animate_size = astronaut[Animate_key];
+    *Animate_size = astronaut_size[Animate_key];
     if (Animate_key >= 9)
         Animate_key = -1;
 //胡桃摇
