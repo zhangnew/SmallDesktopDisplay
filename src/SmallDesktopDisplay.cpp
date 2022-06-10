@@ -105,9 +105,11 @@ Thread reflash_Banner = Thread();
 Thread reflash_openWifi = Thread();
 //创建动画绘制线程
 Thread reflash_Animate = Thread();
+//创建等待 WiFi 进程
+Thread reflash_WaitWifi = Thread();
 
 //创建协程池
-StaticThreadController<4> controller(&reflash_time, &reflash_Banner, &reflash_openWifi, &reflash_Animate);
+StaticThreadController<5> controller(&reflash_time, &reflash_Banner, &reflash_openWifi, &reflash_Animate, &reflash_WaitWifi);
 
 //联网后所有需要更新的数据
 Thread WIFI_reflash = Thread();
@@ -1239,6 +1241,7 @@ void WIFI_reflash_All()
   {
     if (WiFi.status() == WL_CONNECTED)
     {
+      Serial.println();
       log("WIFI connected");
 
       // Serial.println("getCityWeater start");
@@ -1262,9 +1265,17 @@ void WIFI_reflash_All()
 // 打开WIFI
 void openWifi()
 {
-  log("WIFI reconnecting");
+  log("WIFI reconnecting", false);
   WiFi.forceSleepWake(); // wifi on
   Wifi_en = 1;
+}
+
+void waitWifi()
+{
+  if (Wifi_en == 1)
+  {
+    Serial.print(".");
+  }
 }
 
 // 强制屏幕刷新
@@ -1412,10 +1423,12 @@ void setup()
 
   reflash_Animate.setInterval(TMS / ANIMATE_FPS); //设置帧率
   reflash_Animate.onRun(refresh_AnimatedImage);
+
+  reflash_WaitWifi.setInterval(TMS / 2); // 设置所需间隔 500 ms
+  reflash_WaitWifi.onRun(waitWifi);
   controller.run();
 }
 
-int Animate_reflash_Time = 0; // 更新时间记录
 const uint8_t *Animate_value; // 指向关键帧的指针
 uint32_t Animate_size;        // 指向关键帧大小的指针
 void refresh_AnimatedImage()
