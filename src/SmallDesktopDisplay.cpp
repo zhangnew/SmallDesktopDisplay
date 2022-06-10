@@ -1370,7 +1370,7 @@ void setup()
   reflash_openWifi.onRun(openWifi);
 
   reflash_Animate.setInterval(TMS / 10); //设置帧率
-  reflash_openWifi.onRun(refresh_AnimatedImage);
+  reflash_Animate.onRun(refresh_AnimatedImage);
   controller.run();
 }
 
