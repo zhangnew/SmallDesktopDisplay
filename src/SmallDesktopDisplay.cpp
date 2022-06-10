@@ -1205,7 +1205,7 @@ void WIFI_reflash_All()
       getCityWeater();
       // Serial.println("getCityWeater end");
 
-      getNtpTime();
+      setTime(getNtpTime());
       //其他需要联网的方法写在后面
 
       WiFi.forceSleepBegin(); // Wifi Off
@@ -1325,9 +1325,8 @@ void setup()
   Serial.println(WiFi.localIP());
   Serial.println("启动UDP");
   Udp.begin(localPort);
-  Serial.println("等待同步...");
-  setSyncProvider(getNtpTime);
-  setSyncInterval(300);
+  Serial.println("等待时间同步...");
+  setTime(getNtpTime());
 
   TJpgDec.setJpgScale(1);
   TJpgDec.setSwapBytes(true);
