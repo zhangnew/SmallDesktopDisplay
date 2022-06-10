@@ -1431,24 +1431,20 @@ void setup()
 
 const uint8_t *Animate_value; // 指向关键帧的指针
 uint32_t Animate_size;        // 指向关键帧大小的指针
+// 更新动画帧
 void refresh_AnimatedImage()
 {
 #if Animate_Choice
   if (DHT_img_flag == 0)
   {
-    if (millis() - Animate_reflash_Time > TMS / ANIMATE_FPS) // x ms切换一次
-    {
-      Animate_reflash_Time = millis();
-      imgAnim(&Animate_value, &Animate_size);
-      TJpgDec.drawJpg(160, 160, Animate_value, Animate_size);
-    }
+    imgAnim(&Animate_value, &Animate_size);
+    TJpgDec.drawJpg(160, 160, Animate_value, Animate_size);
   }
 #endif
 }
 
 void loop()
 {
-  refresh_AnimatedImage(); // 更新右下角动画
   WIFI_reflash_All();      // WIFI应用
   Supervisor_controller(); // 守护线程池
   Serial_set();            // 串口响应
