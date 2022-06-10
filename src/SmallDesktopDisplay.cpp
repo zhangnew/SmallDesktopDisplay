@@ -63,8 +63,10 @@ WiFiManager wm; // global wm instance
 DHT dht(DHTPIN, DHTTYPE);
 #endif
 
+#if EXISTS_BUTTON
 //定义按钮引脚
 Button2 Button_sw1 = Button2(4);
+#endif
 
 /* *****************************************************************
  *  字库、图片库
@@ -123,7 +125,7 @@ struct config_type
 config_type wificonf = {{"WiFi名"}, {"密码"}};
 
 //天气更新时间  X 分钟
-unsigned int updateweater_time = 1;
+unsigned int updateweater_time = DEFAULT_UPDATE_TIME;
 
 //----------------------------------------------------
 
@@ -147,9 +149,6 @@ int Ro_addr = 2;    //被写入数据的EEPROM地址编号  2 旋转方向
 int DHT_addr = 3;   // 3 DHT使能标志位
 int CC_addr = 10;   //被写入数据的EEPROM地址编号  10城市
 int wifi_addr = 30; //被写入数据的EEPROM地址编号  20wifi-ssid-psw
-
-time_t prevDisplay = 0;       //显示时间显示记录
-int Amimate_reflash_Time = 0; //更新时间记录
 
 /*** Component objects ***/
 WeatherNum wrat;
@@ -204,9 +203,18 @@ String dateTime()
 }
 
 // 打印日志到串口
+void log(String str, bool newline)
+{
+  Serial.print(dateTime() + " " + str);
+  if (newline)
+  {
+    Serial.println();
+  }
+}
+// 打印日志到串口
 void log(String str)
 {
-  Serial.println(dateTime() + " " + str);
+  log(str, true);
 }
 
 /* *****************************************************************
@@ -1124,6 +1132,17 @@ void digitalClockDisplay(int reflash_en = 0)
 const int NTP_PACKET_SIZE = 48;     // NTP时间在消息的前48字节中
 byte packetBuffer[NTP_PACKET_SIZE]; // buffer to hold incoming & outgoing packets
 
+void updateNtpTime()
+{
+  setTime(getNtpTime());
+  unsigned int retry = 0;
+  while (year() < 2020 && retry < 3)
+  {
+    setTime(getNtpTime());
+    retry++;
+  }
+}
+
 time_t getNtpTime()
 {
   IPAddress ntpServerIP; // NTP server's ip address
@@ -1199,8 +1218,6 @@ void wifi_reset(Button2 &btn)
 //更新时间
 void reflashTime()
 {
-  prevDisplay = now();
-  // timeClockDisplay(1);
   digitalClockDisplay();
   prevTime = 0;
 }
@@ -1228,7 +1245,7 @@ void WIFI_reflash_All()
       getCityWeater();
       // Serial.println("getCityWeater end");
 
-      setTime(getNtpTime());
+      updateNtpTime();
       //其他需要联网的方法写在后面
 
       WiFi.forceSleepBegin(); // Wifi Off
@@ -1245,7 +1262,7 @@ void WIFI_reflash_All()
 // 打开WIFI
 void openWifi()
 {
-  log("WIFI reset......");
+  log("WIFI reconnecting");
   WiFi.forceSleepWake(); // wifi on
   Wifi_en = 1;
 }
@@ -1270,8 +1287,10 @@ void Supervisor_controller()
 
 void setup()
 {
+#if EXISTS_BUTTON
   Button_sw1.setClickHandler(esp_reset);
   Button_sw1.setLongClickHandler(wifi_reset);
+#endif
   Serial.begin(115200);
   EEPROM.begin(1024);
   // WiFi.forceSleepWake();
@@ -1349,7 +1368,7 @@ void setup()
   Serial.println("启动UDP");
   Udp.begin(localPort);
   Serial.println("等待时间同步...");
-  setTime(getNtpTime());
+  updateNtpTime();
 
   TJpgDec.setJpgScale(1);
   TJpgDec.setSwapBytes(true);
@@ -1391,21 +1410,22 @@ void setup()
   reflash_openWifi.setInterval(updateweater_time * 60 * TMS); //设置所需间隔 10分钟
   reflash_openWifi.onRun(openWifi);
 
-  reflash_Animate.setInterval(TMS / 10); //设置帧率
+  reflash_Animate.setInterval(TMS / ANIMATE_FPS); //设置帧率
   reflash_Animate.onRun(refresh_AnimatedImage);
   controller.run();
 }
 
-const uint8_t *Animate_value; //指向关键帧的指针
-uint32_t Animate_size;        //指向关键帧大小的指针
+int Animate_reflash_Time = 0; // 更新时间记录
+const uint8_t *Animate_value; // 指向关键帧的指针
+uint32_t Animate_size;        // 指向关键帧大小的指针
 void refresh_AnimatedImage()
 {
 #if Animate_Choice
   if (DHT_img_flag == 0)
   {
-    if (millis() - Amimate_reflash_Time > 100) // x ms切换一次
+    if (millis() - Animate_reflash_Time > TMS / ANIMATE_FPS) // x ms切换一次
     {
-      Amimate_reflash_Time = millis();
+      Animate_reflash_Time = millis();
       imgAnim(&Animate_value, &Animate_size);
       TJpgDec.drawJpg(160, 160, Animate_value, Animate_size);
     }
@@ -1415,10 +1435,11 @@ void refresh_AnimatedImage()
 
 void loop()
 {
-  // refresh_AnimatedImage(&TJpgDec); //更新右下角
-  refresh_AnimatedImage(); //更新右下角
-  Supervisor_controller(); // 守护线程池
+  refresh_AnimatedImage(); // 更新右下角动画
   WIFI_reflash_All();      // WIFI应用
-  Serial_set();            //串口响应
-  Button_sw1.loop();       //按钮轮询
+  Supervisor_controller(); // 守护线程池
+  Serial_set();            // 串口响应
+#if EXISTS_BUTTON
+  Button_sw1.loop(); // 按钮轮询
+#endif
 }
