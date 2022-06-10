@@ -93,6 +93,7 @@ void esp_reset(Button2 &btn);
 void scrollBanner();
 void weaterData(String *cityDZ, String *dataSK, String *dataFC); //天气信息写到屏幕上
 void refresh_AnimatedImage();                                    //更新右下角
+void log(String str);                                            // 打印日志到串口
 
 //创建时间更新函数线程
 Thread reflash_time = Thread();
@@ -184,6 +185,28 @@ String monthDay()
   String s = String(month());
   s = s + "月" + day() + "日";
   return s;
+}
+
+String intToString(int num)
+{
+  String str = String(num);
+  if (num < 10)
+  {
+    str = "0" + str;
+  }
+  return str;
+}
+
+// 年-月-日 时:分:秒
+String dateTime()
+{
+  return String(year()) + "-" + intToString(month()) + "-" + intToString(day()) + " " + intToString(hour()) + ":" + intToString(minute()) + ":" + intToString(second());
+}
+
+// 打印日志到串口
+void log(String str)
+{
+  Serial.println(dateTime() + " " + str);
 }
 
 /* *****************************************************************
@@ -788,7 +811,7 @@ void getCityWeater()
 
   //启动连接并发送HTTP请求
   int httpCode = httpClient.GET();
-  Serial.println("正在获取天气数据");
+  log("正在获取天气数据");
   // Serial.println(URL);
 
   //如果服务器响应OK则从服务器获取响应体信息并通过串口输出
@@ -813,11 +836,11 @@ void getCityWeater()
     // Serial.println(jsonFC);
 
     weaterData(&jsonCityDZ, &jsonDataSK, &jsonFC);
-    Serial.println("获取成功");
+    log("天气数据获取成功");
   }
   else
   {
-    Serial.println("请求城市天气错误：");
+    log("请求城市天气错误：");
     Serial.print(httpCode);
   }
 
@@ -1120,7 +1143,7 @@ time_t getNtpTime()
     int size = Udp.parsePacket();
     if (size >= NTP_PACKET_SIZE)
     {
-      Serial.println("Receive NTP Response");
+      log("Receive NTP Response");
       Udp.read(packetBuffer, NTP_PACKET_SIZE); // read packet into the buffer
       unsigned long secsSince1900;
       // convert four bytes starting at location 40 to a long integer
@@ -1132,7 +1155,7 @@ time_t getNtpTime()
       return secsSince1900 - 2208988800UL + timeZone * SECS_PER_HOUR;
     }
   }
-  Serial.println("No NTP Response :-(");
+  log("No NTP Response :-(");
   return 0; // 无法获取时间时返回0
 }
 
@@ -1199,7 +1222,7 @@ void WIFI_reflash_All()
   {
     if (WiFi.status() == WL_CONNECTED)
     {
-      Serial.println("WIFI connected");
+      log("WIFI connected");
 
       // Serial.println("getCityWeater start");
       getCityWeater();
@@ -1209,7 +1232,7 @@ void WIFI_reflash_All()
       //其他需要联网的方法写在后面
 
       WiFi.forceSleepBegin(); // Wifi Off
-      Serial.println("WIFI sleep......");
+      log("WIFI sleep......");
       Wifi_en = 0;
     }
     else
@@ -1222,7 +1245,7 @@ void WIFI_reflash_All()
 // 打开WIFI
 void openWifi()
 {
-  Serial.println("WIFI reset......");
+  log("WIFI reset......");
   WiFi.forceSleepWake(); // wifi on
   Wifi_en = 1;
 }
@@ -1356,7 +1379,7 @@ void setup()
 #endif
 
   WiFi.forceSleepBegin(); // wifi off
-  Serial.println("WIFI休眠......");
+  log("WIFI sleep......");
   Wifi_en = 0;
 
   reflash_time.setInterval(300); //设置所需间隔 100毫秒
