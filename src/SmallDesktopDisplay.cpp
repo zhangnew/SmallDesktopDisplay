@@ -97,6 +97,7 @@ void weaterData(String *cityDZ, String *dataSK, String *dataFC); //天气信息�
 void refresh_AnimatedImage();                                    //更新右下角
 void log(String str);                                            // 打印日志到串口
 void openWifi();                                                 // 打开 WiFi
+void getLunarDate();                                             // 获取农历日期
 
 //创建时间更新函数线程
 Thread reflash_time = Thread();
@@ -765,6 +766,36 @@ void saveParamCallback()
 }
 #endif
 
+// 获取农历日期 FIXME 这里要么请求失败-1，如果成功则会报错重启
+void getLunarDate()
+{
+  String URL = "https://api.zhangnew.com/v1/lunar";
+  HTTPClient httpClient; // 创建 HTTPClient 对象
+  std::unique_ptr<BearSSL::WiFiClientSecure> client(new BearSSL::WiFiClientSecure);
+  client->setInsecure();           // 因为指纹会随着证书更新而变化，这里直接忽略掉吧
+  httpClient.begin(*client, URL);  // 使用新方法
+  int httpCode = httpClient.GET(); // 启动连接并发送HTTP请求
+  log("正在获取农历日期");
+  //如果服务器响应OK则从服务器获取响应体信息并通过串口输出
+  if (httpCode == HTTP_CODE_OK)
+  {
+    String str = httpClient.getString();
+    DynamicJsonDocument doc(1024);
+    deserializeJson(doc, str);
+    JsonObject sk = doc.as<JsonObject>();
+
+    String lunarDate = sk["月日"].as<String>();
+    log("农历日期获取成功 " + lunarDate);
+  }
+  else
+  {
+    log("请求农历日期错误：", false);
+    Serial.println(httpCode);
+  }
+  //关闭ESP8266与服务器连接
+  httpClient.end();
+}
+
 // 发送HTTP请求并且将服务器响应通过串口输出
 void getCityCode()
 {
@@ -1261,6 +1292,7 @@ void WIFI_reflash_All()
 
       updateNtpTime();
       //其他需要联网的方法写在后面
+      getLunarDate();
 
       WiFi.forceSleepBegin(); // Wifi Off
       log("WIFI sleep......");
@@ -1414,6 +1446,7 @@ void setup()
   TJpgDec.drawJpg(15, 213, humidity, sizeof(humidity));       //湿度图标
 
   getCityWeater();
+  getLunarDate();
 #if DHT_EN
   if (DHT_img_flag != 0)
     IndoorTem();
