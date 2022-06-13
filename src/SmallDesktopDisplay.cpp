@@ -171,6 +171,9 @@ const int timeZone = 8; //东八区
 // wifi连接UDP设置参数
 WiFiUDP Udp;
 WiFiClient wificlient;
+#if SHOW_LUNAR
+WiFiClientSecure wifiClientSecure;
+#endif
 unsigned int localPort = 8000;
 float duty = 0;
 
@@ -286,7 +289,7 @@ void humidityWin()
   clk.fillSprite(0x0000);                          //填充率
   clk.drawRoundRect(0, 0, 52, 6, 3, 0xFFFF);       //空心圆角矩形  起始位x,y,长度，宽度，圆弧半径，颜色
   clk.fillRoundRect(1, 1, huminum, 4, 2, humicol); //实心圆角矩形
-  clk.pushSprite(45, 222);                         //窗口位置
+  clk.pushSprite(45, 192);                         //窗口位置
   clk.deleteSprite();
 }
 
@@ -299,7 +302,7 @@ void tempWin()
   clk.fillSprite(0x0000);                          //填充率
   clk.drawRoundRect(0, 0, 52, 6, 3, 0xFFFF);       //空心圆角矩形  起始位x,y,长度，宽度，圆弧半径，颜色
   clk.fillRoundRect(1, 1, tempnum, 4, 2, tempcol); //实心圆角矩形
-  clk.pushSprite(45, 192);                         //窗口位置
+  clk.pushSprite(45, 222);                         //窗口位置
   clk.deleteSprite();
 }
 
@@ -462,8 +465,10 @@ void Serial_set()
         tft.fillScreen(0x0000);
         LCD_reflash(); //屏幕刷新程序
         UpdateWeater_en = 1;
-        TJpgDec.drawJpg(15, 183, temperature, sizeof(temperature)); //温度图标
-        TJpgDec.drawJpg(15, 213, humidity, sizeof(humidity));       //湿度图标
+        TJpgDec.drawJpg(15, 213, temperature, sizeof(temperature)); // 温度图标
+#if !SHOW_LUNAR
+        TJpgDec.drawJpg(15, 183, humidity, sizeof(humidity)); // 湿度图标
+#endif
 
         Serial.print("屏幕方向设置为：");
         Serial.println(RoSet);
@@ -766,15 +771,16 @@ void saveParamCallback()
 }
 #endif
 
-// 获取农历日期 FIXME 这里要么请求失败-1，如果成功则会报错重启
+#if SHOW_LUNAR
+String lunarDate;
+// 获取农历日期
 void getLunarDate()
 {
+  wifiClientSecure.setInsecure();
   String URL = "https://api.zhangnew.com/v1/lunar";
-  HTTPClient httpClient; // 创建 HTTPClient 对象
-  std::unique_ptr<BearSSL::WiFiClientSecure> client(new BearSSL::WiFiClientSecure);
-  client->setInsecure();           // 因为指纹会随着证书更新而变化，这里直接忽略掉吧
-  httpClient.begin(*client, URL);  // 使用新方法
-  int httpCode = httpClient.GET(); // 启动连接并发送HTTP请求
+  HTTPClient httpClient;                   // 创建 HTTPClient 对象
+  httpClient.begin(wifiClientSecure, URL); // 使用新方法
+  int httpCode = httpClient.GET();         // 启动连接并发送HTTP请求
   log("正在获取农历日期");
   //如果服务器响应OK则从服务器获取响应体信息并通过串口输出
   if (httpCode == HTTP_CODE_OK)
@@ -784,7 +790,7 @@ void getLunarDate()
     deserializeJson(doc, str);
     JsonObject sk = doc.as<JsonObject>();
 
-    String lunarDate = sk["月日"].as<String>();
+    lunarDate = sk["月日"].as<String>();
     log("农历日期获取成功 " + lunarDate);
   }
   else
@@ -795,6 +801,7 @@ void getLunarDate()
   //关闭ESP8266与服务器连接
   httpClient.end();
 }
+#endif
 
 // 发送HTTP请求并且将服务器响应通过串口输出
 void getCityCode()
@@ -920,7 +927,7 @@ void weaterData(String *cityDZ, String *dataSK, String *dataFC)
   clk.setTextDatum(CC_DATUM);
   clk.setTextColor(TFT_WHITE, bgColor);
   clk.drawString(sk["temp"].as<String>() + "℃", 28, 13);
-  clk.pushSprite(100, 184);
+  clk.pushSprite(100, 214);
   clk.deleteSprite();
   tempnum = sk["temp"].as<int>();
   tempnum = tempnum + 10;
@@ -948,9 +955,9 @@ void weaterData(String *cityDZ, String *dataSK, String *dataFC)
   clk.setTextColor(TFT_WHITE, bgColor);
   clk.drawString(sk["SD"].as<String>(), 28, 13);
   // clk.drawString("100%",28,13);
-  clk.pushSprite(100, 214);
+  clk.pushSprite(100, 184);
   clk.deleteSprite();
-  // String A = sk["SD"].as<String>();
+#if !SHOW_LUNAR
   huminum = atoi((sk["SD"].as<String>()).substring(0, 2).c_str());
 
   if (huminum > 90)
@@ -964,6 +971,7 @@ void weaterData(String *cityDZ, String *dataSK, String *dataFC)
   else
     humicol = 0xF00F;
   humidityWin();
+#endif
 
   // 城市名称
   clk.createSprite(94, 30);
@@ -1164,6 +1172,17 @@ void digitalClockDisplay(int reflash_en = 0)
   clk.pushSprite(5, 150);
   clk.deleteSprite();
 
+#if SHOW_LUNAR
+  // 农历月日
+  clk.createSprite(95, 30);
+  clk.fillSprite(bgColor);
+  clk.setTextDatum(CC_DATUM);
+  clk.setTextColor(TFT_WHITE, bgColor);
+  clk.drawString(lunarDate, 49, 16);
+  clk.pushSprite(10, 182);
+  clk.deleteSprite();
+#endif
+
   clk.unloadFont();
   /***日期****/
 }
@@ -1292,7 +1311,9 @@ void WIFI_reflash_All()
 
       updateNtpTime();
       //其他需要联网的方法写在后面
+#if SHOW_LUNAR
       getLunarDate();
+#endif
 
       WiFi.forceSleepBegin(); // Wifi Off
       log("WIFI sleep......");
@@ -1442,11 +1463,14 @@ void setup()
 
   tft.fillScreen(TFT_BLACK); //清屏
 
-  TJpgDec.drawJpg(15, 183, temperature, sizeof(temperature)); //温度图标
-  TJpgDec.drawJpg(15, 213, humidity, sizeof(humidity));       //湿度图标
+  TJpgDec.drawJpg(15, 213, temperature, sizeof(temperature)); //温度图标
 
   getCityWeater();
+#if SHOW_LUNAR
   getLunarDate();
+#else
+  TJpgDec.drawJpg(15, 183, humidity, sizeof(humidity)); //湿度图标
+#endif
 #if DHT_EN
   if (DHT_img_flag != 0)
     IndoorTem();
