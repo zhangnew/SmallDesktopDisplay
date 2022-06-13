@@ -1,5 +1,7 @@
 # SmallDesktopDisplay
 
+![渲染图](./images/render.png)
+
 ## Description
 
 相比原版，做了如下改动：
