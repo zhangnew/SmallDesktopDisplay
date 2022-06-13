@@ -1245,6 +1245,7 @@ void WIFI_reflash_All()
     {
       Serial.println();
       log("WIFI connected");
+      log("本地IP: " + WiFi.localIP().toString());
 
       // Serial.println("getCityWeater start");
       getCityWeater();
@@ -1274,7 +1275,7 @@ void openWifi()
 
 void waitWifi()
 {
-  if (Wifi_en == 1)
+  if (Wifi_en == 1 && WiFi.status() != WL_CONNECTED)
   {
     Serial.print(".");
   }
