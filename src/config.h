@@ -6,7 +6,7 @@
 #define SD_FONT_YELLOW 0xD404 // 黄色字体颜色
 #define SD_FONT_WHITE 0xFFFF  // 白色字体颜色
 #define ANIMATE_FPS 10        // 右下角动画 FPS
-#define DEFAULT_UPDATE_TIME 1 // 默认联网更新周期（单位：分钟）
+#define WIFI_UPDATE_TIME 10   // 默认联网更新周期（单位：分钟）
 #define EXISTS_BUTTON false   // 是否有按键（默认否）
 #define SHOW_LUNAR true       // 是否显示农历（代替湿度图标）
 

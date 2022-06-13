@@ -129,7 +129,7 @@ struct config_type
 config_type wificonf = {{"WiFi名"}, {"密码"}};
 
 //天气更新时间  X 分钟
-unsigned int updateweater_time = DEFAULT_UPDATE_TIME;
+unsigned int updateweater_time = WIFI_UPDATE_TIME;
 
 //----------------------------------------------------
 
@@ -383,9 +383,8 @@ void Serial_set()
 {
   if (Serial.available() > 0)
   {
-    byte b;
     delay(1); // 不能省略，因为读取缓冲区数据需要时间
-    b = Serial.read();
+    byte b = Serial.read();
     if (b != '\r')
     {
       char c = char(b);
@@ -526,6 +525,10 @@ void Serial_set()
         Serial.println("重置WiFi成功");
         SMOD = "";
         ESP.restart();
+      }
+      else if (SMOD == "0x06")
+      {
+        openWifi();
       }
       else
       {
