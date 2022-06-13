@@ -372,17 +372,23 @@ void SmartConfig(void)
 #endif
 
 String SMOD = ""; // 0亮度
-//串口调试设置函数
+String incomingByte = "";
+// 串口调试设置函数
 void Serial_set()
 {
-  String incomingByte = "";
   if (Serial.available() > 0)
   {
-    while (Serial.available() > 0) //监测串口缓存，当有数据输入时，循环赋值给incomingByte
+    byte b;
+    delay(1); // 不能省略，因为读取缓冲区数据需要时间
+    b = Serial.read();
+    if (b != '\r')
     {
-      incomingByte += char(Serial.read()); //读取单个字符值，转换为字符，并按顺序一个个赋值给incomingByte
-      delay(2);                            //不能省略，因为读取缓冲区数据需要时间
+      char c = char(b);
+      incomingByte += c; // 读取单个字符值，转换为字符，并按顺序一个个赋值给incomingByte
+      Serial.print(c);
+      return;
     }
+    Serial.println();
     if (SMOD == "0x01") //设置1亮度设置
     {
       int LCDBL = atoi(incomingByte.c_str()); // int n = atoi(xxx.c_str());//String转int
@@ -475,6 +481,7 @@ void Serial_set()
         Serial.printf("天气更新时间更改为：");
         Serial.print(updateweater_time);
         Serial.println("分钟");
+        reflash_openWifi.setInterval(updateweater_time * 60 * TMS); //设置所需间隔
       }
       else
         Serial.println("更新时间太长，请重新设置（1-60）");
@@ -482,7 +489,7 @@ void Serial_set()
     else
     {
       SMOD = incomingByte;
-      delay(2);
+      incomingByte = "";
       if (SMOD == "0x01")
         Serial.println("请输入亮度值，范围0-100");
       else if (SMOD == "0x02")
