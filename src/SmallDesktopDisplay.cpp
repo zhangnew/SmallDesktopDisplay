@@ -1203,6 +1203,7 @@ void sendNTPpacket(IPAddress &address)
   Udp.endPacket();
 }
 
+#if EXISTS_BUTTON
 void esp_reset(Button2 &btn)
 {
   ESP.reset();
@@ -1216,6 +1217,7 @@ void wifi_reset(Button2 &btn)
   Serial.println("重置WiFi成功");
   ESP.restart();
 }
+#endif
 
 //更新时间
 void reflashTime()
