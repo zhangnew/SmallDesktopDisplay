@@ -97,6 +97,7 @@ void scrollBanner();
 void weaterData(String *cityDZ, String *dataSK, String *dataFC); //天气信息写到屏幕上
 void refresh_AnimatedImage();                                    //更新右下角
 void log(String str);                                            // 打印日志到串口
+void openWifi();                                                 // 打开 WiFi
 
 //创建时间更新函数线程
 Thread reflash_time = Thread();
@@ -442,7 +443,7 @@ void Serial_set()
           Serial.println(cityCode);
         }
         Serial.println("");
-        getCityWeater(); //更新城市天气
+        openWifi(); // 更新城市天气
         SMOD = "";
       }
       else
