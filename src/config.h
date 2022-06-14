@@ -1,4 +1,4 @@
-#define Version "SDD V1.4.5"  // 版本号
+#define Version "SDD V1.4.6"  // 版本号
 #define Animate_Choice 1      // 动图选择：1,太空人图片 2,胡桃
 #define TMS 1000              // 一千毫秒
 #define WM_EN 1               // WEB配网使能标志位----WEB配网打开后会默认关闭smartconfig功能
