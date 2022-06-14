@@ -71,10 +71,10 @@ Button2 Button_sw1 = Button2(4);
 /* *****************************************************************
  *  字库、图片库
  * *****************************************************************/
-#include "font/SourceHanSans_20.h" //字体库
-#include "font/timeClockFont.h"    //字体库
-#include "img/temperature.h"       //温度图标
-#include "img/humidity.h"          //湿度图标
+#include "font/CustomFont.h"    //字体库
+#include "font/timeClockFont.h" //字体库
+#include "img/temperature.h"    //温度图标
+#include "img/humidity.h"       //湿度图标
 
 //函数声明
 void sendNTPpacket(IPAddress &address); //向NTP服务器发送请求
@@ -308,7 +308,7 @@ void IndoorTem()
   String s = "内温";
   /***绘制相关文字***/
   clk.setColorDepth(8);
-  clk.loadFont(SourceHanSans_20);
+  clk.loadFont(CustomFont);
 
   //位置
   clk.createSprite(58, 30);
@@ -932,7 +932,7 @@ void weatherData(String *cityDZ, String *dataSK, String *dataFC)
 
   /***绘制相关文字***/
   clk.setColorDepth(8);
-  clk.loadFont(SourceHanSans_20);
+  clk.loadFont(CustomFont);
 
   // 温度
   clk.createSprite(58, 24);
@@ -1067,7 +1067,7 @@ void scrollBanner()
   if (scrollText[currentIndex])
   {
     clkb.setColorDepth(8);
-    clkb.loadFont(SourceHanSans_20);
+    clkb.loadFont(CustomFont);
     clkb.createSprite(150, 30);
     clkb.fillSprite(bgColor);
     clkb.setTextWrap(false);
@@ -1160,7 +1160,7 @@ void digitalClockDisplay(int refreshEn = 0)
     refreshEn = 0;
   /***日期****/
   clk.setColorDepth(8);
-  clk.loadFont(SourceHanSans_20);
+  clk.loadFont(CustomFont);
 
   //星期
   clk.createSprite(58, 30);
