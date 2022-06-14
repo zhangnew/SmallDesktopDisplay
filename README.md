@@ -13,7 +13,9 @@
 - [x] [删除 loop 中重复更新右下角动画](https://github.com/zhangnew/SmallDesktopDisplay/commit/9b36c65241414e32d03063cd8c3b757e524b5138)
 - [x] [修复串口命令失效的问题](https://github.com/zhangnew/SmallDesktopDisplay/commit/17788f96137544e1167d95dfd18ab5a7853d9306)
 - [x] [可配置: 用农历代替湿度显示](https://github.com/zhangnew/SmallDesktopDisplay/commit/ebc5129690066e4715ce7ddd47d57ecf139f8dd1)
+- [x] [**添加一键更新字库的脚本**](https://github.com/zhangnew/SmallDesktopDisplay/commit/6adf99d40c566e6181d45a828a64791ed54334ef) [使用说明](tools/README.md)
 - [x] 精简 loop 中的代码，统一到 Thread 中定时执行
+- [x] 很多变量名都重新修改为驼峰格式，并修改了一些错别字
 - [x] [更多优化见 commit 记录](https://github.com/zhangnew/SmallDesktopDisplay/commits/main)
 
 ## Development
