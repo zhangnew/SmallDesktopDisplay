@@ -131,6 +131,10 @@ config_type wificonf = {{"WiFi名"}, {"密码"}};
 //天气更新时间  X 分钟
 unsigned int updateweater_time = WIFI_UPDATE_TIME;
 
+String scrollText[7]; // 滚动显示天气
+bool debug_font = DEBUG_FONT;
+String debug_str = "";
+
 //----------------------------------------------------
 
 // LCD屏幕相关设置
@@ -390,6 +394,13 @@ void Serial_set()
       char c = char(b);
       incomingByte += c; // 读取单个字符值，转换为字符，并按顺序一个个赋值给incomingByte
       Serial.print(c);
+      if (debug_font)
+      {
+        for (int idx = 0; idx < 7; idx++)
+        {
+          scrollText[idx] = incomingByte;
+        }
+      }
       return;
     }
     Serial.println();
@@ -529,6 +540,20 @@ void Serial_set()
       else if (SMOD == "0x06")
       {
         openWifi();
+      }
+      else if (SMOD == "0x07")
+      {
+        if (debug_font)
+        {
+          debug_font = false;
+          openWifi();
+          log("已关闭字体调试功能");
+        }
+        else
+        {
+          debug_font = true;
+          log("已打开字体调试功能");
+        }
       }
       else
       {
@@ -882,17 +907,17 @@ void getCityWeater()
     int indexEnd = str.indexOf("};var alarmDZ");
 
     String jsonCityDZ = str.substring(indexStart + 13, indexEnd);
-    // Serial.println(jsonCityDZ);
+    log(jsonCityDZ);
 
     indexStart = str.indexOf("dataSK =");
     indexEnd = str.indexOf(";var dataZS");
     String jsonDataSK = str.substring(indexStart + 8, indexEnd);
-    // Serial.println(jsonDataSK);
+    log(jsonDataSK);
 
     indexStart = str.indexOf("\"f\":[");
     indexEnd = str.indexOf(",{\"fa");
     String jsonFC = str.substring(indexStart + 5, indexEnd);
-    // Serial.println(jsonFC);
+    log(jsonFC);
 
     weaterData(&jsonCityDZ, &jsonDataSK, &jsonFC);
     log("天气数据获取成功");
@@ -906,9 +931,6 @@ void getCityWeater()
   //关闭ESP8266与服务器连接
   httpClient.end();
 }
-
-String scrollText[7];
-// int scrollTextWidth = 0;
 
 // 天气信息写到屏幕上
 void weaterData(String *cityDZ, String *dataSK, String *dataFC)

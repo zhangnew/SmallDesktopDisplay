@@ -9,5 +9,6 @@
 #define WIFI_UPDATE_TIME 10   // 默认联网更新周期（单位：分钟）
 #define EXISTS_BUTTON false   // 是否有按键（默认否）
 #define SHOW_LUNAR true       // 是否显示农历（代替湿度图标）
+#define DEBUG_FONT false      // 测试字库，在左上角滚动窗口显示串口输入的文字
 
 #define timeY 82 // 定义高度
