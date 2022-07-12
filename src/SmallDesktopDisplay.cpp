@@ -164,9 +164,6 @@ const int timeZone = 8; //东八区
 // wifi连接UDP设置参数
 WiFiUDP Udp;
 WiFiClient wifiClient;
-#if SHOW_LUNAR
-WiFiClientSecure wifiClientSecure;
-#endif
 unsigned int localPort = 8000;
 float duty = 0;
 
@@ -792,11 +789,10 @@ String lunarDate;
 // 获取农历日期
 void getLunarDate()
 {
-  wifiClientSecure.setInsecure();
-  String URL = "https://api.zhangnew.com/v1/lunar";
-  HTTPClient httpClient;                   // 创建 HTTPClient 对象
-  httpClient.begin(wifiClientSecure, URL); // 使用新方法
-  int httpCode = httpClient.GET();         // 启动连接并发送HTTP请求
+  String URL = "http://api.zhangnew.com/v1/lunar";
+  HTTPClient httpClient;             // 创建 HTTPClient 对象
+  httpClient.begin(wifiClient, URL); // 使用新方法
+  int httpCode = httpClient.GET();   // 启动连接并发送HTTP请求
   log("正在获取农历日期");
   //如果服务器响应OK则从服务器获取响应体信息并通过串口输出
   if (httpCode == HTTP_CODE_OK)
