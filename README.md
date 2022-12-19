@@ -27,3 +27,5 @@ pio run -e esp12e
 # build and upload
 pio run -e esp12e -t upload
 ```
+
+[更新字库](tools/README.md)
