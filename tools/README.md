@@ -17,4 +17,4 @@
 
 执行 `bash update_font.sh` 中间会弹出字体渲染窗口, 手动关闭之后会继续执行, 脚本执行成功后会自动更新 `/src/font/CustomFont.h` 文件，重新编译固件即可
 
-如果有缺失字体，修改 `get_dict.py` 里面的 `additional_list` 变量即可
+如果有缺失字体，修改 [tools/get_dict.py](get_dict.py) 里面的 `additional_list` 变量即可
