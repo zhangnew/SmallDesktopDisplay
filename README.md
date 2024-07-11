@@ -18,6 +18,15 @@
 - [x] 很多变量名都重新修改为驼峰格式，并修改了一些错别字
 - [x] [更多优化见 commit 记录](https://github.com/zhangnew/SmallDesktopDisplay/commits/main)
 
+## Usage
+
+```bash
+# macOS 下可以使用如下命令进入控制台进行配置天气等
+screen $(find /dev/ -name 'tty.usbserial-*' 2>/dev/null) 115200
+```
+
+天气代码可以通过 [www.weather.com.cn](http://www.weather.com.cn/) 获取，比如北京朝阳区是 http://www.weather.com.cn/weather1d/101010300.shtml 其天气代码就是 **101010300**
+
 ## Development
 
 ```bash
